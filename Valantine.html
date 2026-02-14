@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ultimate Valentine 💌</title>
+    <style>
+        :root {
+            --env-color: #ff4d6d;
+            --env-dark: #e63958;
+            --paper: #ffffff;
+            --bg: #fff0f3;
+            --accent: #c9184a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            height: 100vh; width: 100vw;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+
+        .bg-hearts { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+
+        /* --- THE ENVELOPE --- */
+        #envelope-wrapper {
+            position: relative;
+            width: 580px; height: 380px;
+            perspective: 1500px;
+            z-index: 10;
+        }
+
+        @media (max-width: 650px) { #envelope-wrapper { width: 95vw; height: 62vw; } }
+
+        .env-back {
+            position: absolute; inset: 0;
+            background: var(--env-dark);
+            border-radius: 10px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+            z-index: 1;
+        }
+
+        /* FIXED: Letter size and overflow */
+        .letter {
+            position: absolute;
+            top: 5%; left: 5%;
+            width: 90%; height: 90%;
+            max-height: 340px; /* Keeps it inside envelope height */
+            background: var(--paper);
+            z-index: 2;
+            padding: 25px;
+            border-radius: 5px;
+            text-align: center;
+            overflow: visible; 
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s;
+            display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Changed from center to move text up */
+    align-items: center;
+    padding-top: 40px; /* Adjust this number to move text higher or lower */
+}
+        
+
+        .env-sides { position: absolute; inset: 0; background: var(--env-color); clip-path: polygon(0% 0%, 50% 50%, 0% 100%); z-index: 3; filter: brightness(0.9); }
+        .env-sides-right { position: absolute; inset: 0; background: var(--env-color); clip-path: polygon(100% 0%, 50% 50%, 100% 100%); z-index: 3; filter: brightness(0.9); }
+        .env-pocket { position: absolute; inset: 0; background: var(--env-color); clip-path: polygon(0% 100%, 50% 50%, 100% 100%, 100% 100%, 0% 100%); z-index: 4; }
+        .flap { position: absolute; inset: 0; background: var(--env-color); clip-path: polygon(0% 0%, 50% 50%, 100% 0%); transform-origin: top; transition: transform 0.6s ease; z-index: 5; }
+
+        /* --- BUTTONS --- */
+        #btn-container {
+            position: fixed;
+            bottom: 10%; 
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            z-index: 9999;
+            display: flex;
+            gap: 40px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .show-btns {
+            opacity: 1 !important;
+            transform: translateX(-50%) scale(1.1) !important;
+            pointer-events: all !important;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 900;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            text-transform: uppercase;
+            /* Smooth transition for runaway */
+            transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+        }
+
+        #yes-btn { 
+            background: var(--env-color); 
+            color: white; 
+            animation: heartPulse 0.8s infinite;
+        }
+
+        #no-btn { 
+            background: #ffffff; 
+            color: #444; 
+            border: 2px solid #ddd;
+            position: relative;
+        }
+
+        @keyframes heartPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .is-open .flap { transform: rotateX(180deg); z-index: 0; }
+        .is-open .letter { transform: translateY(-120px); } /* Slide up but stay in V */
+        .is-open .wax-seal, .is-open .lock-content { opacity: 0; pointer-events: none; }
+
+        .lock-content { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); z-index: 12; text-align: center; width: 220px; }
+        input { width: 100%; padding: 12px; border-radius: 25px; border: none; text-align: center; margin-bottom: 10px; outline: none; }
+        .open-btn { background: white; color: var(--accent); border: none; padding: 10px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; }
+
+        .floating-heart { position: fixed; bottom: -100px; z-index: 10000; animation: floatUp 4s forwards linear; pointer-events: none; }
+        @keyframes floatUp { to { transform: translateY(-120vh) rotate(30deg); opacity: 0; } }
+        @keyframes bgFloat { from { transform: translateY(100vh); } to { transform: translateY(-10vh); } }
+        #heartCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Keeps it behind everything */
+    pointer-events: none;
+}
+.celebration-heart {
+    position: fixed;
+    bottom: -100px;
+    pointer-events: none;
+    z-index: 10001; /* Above everything */
+    user-select: none;
+    animation: flyUp 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes flyUp {
+    0% {
+        transform: translateY(0) scale(0.5) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-120vh) scale(1.5) rotate(360deg);
+        opacity: 0;
+    }
+}
+#send-overlay-btn {
+    position: fixed;
+    bottom: 6%;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    background: #db4437;
+    color: white;
+    padding: 14px 34px;
+    border-radius: 40px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 12px 25px rgba(219,68,55,0.35);
+    z-index: 100000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#send-overlay-btn.show {
+    transform: translateX(-50%) scale(1);
+}
+
+    </style>
+</head>
+<canvas id="heartCanvas"></canvas>
+<body>
+
+    <div class="bg-hearts" id="bg-hearts"></div>
+
+    <div id="envelope-wrapper">
+        <div class="env-back"></div>
+        <div class="letter" id="letter">
+            <h2 style="color: var(--accent); font-size: 1.6rem; margin-bottom: 10px;">Will You? ❤️</h2>
+            <p style="color: #555; font-size: 1rem; line-height: 1.4;">
+                Every moment with you is a gift. <br>I want to spend many more with you.
+                - ANIS SANKAR V
+            </p>
+        </div>
+        <div class="env-sides"></div>
+        <div class="env-sides-right"></div>
+        <div class="env-pocket"></div>
+        <div class="flap"></div>
+        <div class="wax-seal" style="position: absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:40px; z-index:11;">❤️</div>
+
+        <div class="lock-content">
+            <input type="password" id="pass" placeholder="Password">
+            <button class="open-btn" onclick="unlock()">OPEN 💌</button>
+        </div>
+    </div>
+
+    <div id="btn-container">
+        <button class="btn" id="yes-btn" onclick="celebrate()">YES!</button>
+        <button class="btn" id="no-btn">NO</button>
+    </div>
+
+    <script>
+        const CONFIG = { password: "love@123" };
+
+        function unlock() {
+            if(document.getElementById('pass').value.toLowerCase() === CONFIG.password) {
+                document.getElementById('envelope-wrapper').classList.add('is-open');
+                setTimeout(() => {
+                    document.getElementById('btn-container').classList.add('show-btns');
+                }, 1400);
+            } else { alert("Try 'love'"); }
+        }
+
+        // IMPROVED RUNAWAY LOGIC
+        const noBtn = document.getElementById('no-btn');
+        noBtn.addEventListener('mouseover', () => {
+            // Calculate a random jump within a 300px radius
+            const x = Math.random() * 400 - 200;
+            const y = Math.random() * 200 - 100;
+            noBtn.style.transform = `translate(${x}px, ${y}px)`;
+        });
+function celebrate() {
+    // 1. Hide the original YES/NO buttons
+    document.getElementById('btn-container').style.display = 'none';
+    
+    // 2. Trigger Visual Effects
+    burstHearts(40); 
+
+    // 3. Update the Letter Content
+    const letter = document.getElementById('letter');
+    
+    // Gmail Link Details
+    const myEmail = "anissankarv@gmail.com"; 
+    const subject = encodeURIComponent("I Said YES! ❤️");
+    const body = encodeURIComponent("I have accepted your Valentine's request! 🥰💌");
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${myEmail}&su=${subject}&body=${body}`;
+
+    letter.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100%; gap: 10px; padding-top: 20px;">
+            <h1 style="color: var(--env-color); font-size: 2rem; margin: 0;">YAY! 🥰</h1>
+            <p style="font-weight: bold; color: #444; margin: 0;">I'M THE LUCKIEST!</p>
+            <div style="font-size: 3rem; margin: 5px 0;">🌹🥂🎉</div>
+            
+            <button id="final-gmail-btn" style="
+                background: #db4437; 
+                color: white; 
+                padding: 12px 25px; 
+                border-radius: 30px; 
+                border: none;
+                font-weight: bold;
+                font-size: 1rem;
+                cursor: pointer;
+                box-shadow: 0 8px 15px rgba(219,68,55,0.3);
+                text-transform: uppercase;
+                margin-top: 10px;
+                position: relative;
+                z-index: 1000;
+            ">SEND MESSAGE ✉️</button>
+        </div>
+    `;
+
+    // --- THE CRITICAL FIXES ---
+    letter.style.zIndex = "100";              // Forces letter in front of the envelope pocket
+    letter.style.transform = "translateY(-220px) scale(1.1)"; // Lifts it much higher
+    letter.style.overflow = "visible";        // Ensures the button isn't "cut off" by the card edge
+
+    // 4. Add Click Event
+    document.getElementById('final-gmail-btn').addEventListener('click', function() {
+        window.open(gmailUrl, '_blank');
+    });
+    
+    // Show SEND button
+const sendBtn = document.getElementById("send-overlay-btn");
+sendBtn.classList.add("show");
+
+// Gmail auto-fill
+sendBtn.onclick = () => {
+    const email = "anissankarv@gmail.com";
+    const subject = encodeURIComponent("I Said YES! ❤️");
+    const body = encodeURIComponent(
+        "Hey ❤️\n\nI opened your Valentine envelope and I said YES! 🥰💌\n\n— Your Valentine 💕"
+    );
+
+    const gmailUrl =
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+
+    window.open(gmailUrl, "_blank");
+};
+
+}
+        function spawnHeart() {
+            const h = document.createElement('div');
+            h.className = 'floating-heart';
+            h.innerText = "❤️";
+            h.style.left = Math.random() * 100 + "vw";
+            h.style.fontSize = (Math.random() * 50 + 20) + "px";
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 4000);
+        }
+
+        setInterval(() => {
+            const h = document.createElement('div');
+            h.innerHTML = "❤️";
+            h.style.position = "absolute";
+            h.style.left = Math.random() * 100 + "vw";
+            h.style.top = "100vh";
+            h.style.opacity = "0.1";
+            h.style.animation = `bgFloat ${Math.random() * 5 + 5}s linear forwards`;
+            document.getElementById('bg-hearts').appendChild(h);
+            setTimeout(() => h.remove(), 8000);
+        }, 700);
+        const canvas = document.getElementById('heartCanvas');
+const ctx = canvas.getContext('2d');
+
+let hearts = [];
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+window.addEventListener('resize', resize);
+resize();
+
+class Heart {
+    constructor() {
+        this.reset();
+    }
+
+    reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + Math.random() * 100; // Start below screen
+        this.size = Math.random() * 15 + 5;
+        this.speedY = Math.random() * 1 + 0.5; // Upward speed
+        this.speedX = Math.random() * 2 - 1;   // Side to side drift
+        this.opacity = Math.random() * 0.5 + 0.1;
+    }
+
+    update() {
+        this.y -= this.speedY;
+        this.x += Math.sin(this.y / 30) * this.speedX; // Random wavy path
+
+        if (this.y < -20) {
+            this.reset();
+        }
+    }
+
+    draw() {
+        ctx.globalAlpha = this.opacity;
+        ctx.fillStyle = "#ff4d6d";
+        ctx.font = `${this.size}px Arial`;
+        ctx.fillText("❤️", this.x, this.y);
+    }
+}
+
+// Create 50 background hearts
+for (let i = 0; i < 50; i++) {
+    hearts.push(new Heart());
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hearts.forEach(heart => {
+        heart.update();
+        heart.draw();
+    });
+    requestAnimationFrame(animate);
+}
+
+animate();
+function celebrate() {
+    // 1. Hide the buttons
+    document.getElementById('btn-container').style.display = 'none';
+    
+    // 2. Update the letter content
+    const letter = document.getElementById('letter');
+    letter.innerHTML = `
+        <div style="padding: 10px;">
+            <h1 style="color: var(--env-color); font-size: 2rem;">YAY! 🥰</h1>
+            <p style="margin-top: 10px; font-weight: bold; color: #444;">I'M THE LUCKIEST!</p>
+            <div style="font-size: 3rem; margin-top: 10px;">🌹🥂🎉</div>
+        </div>
+    `;
+    letter.style.transform = "translateY(-130px) scale(1.1)";
+
+    // 3. Trigger the Big Hearts Burst
+    burstHearts(40); 
+    // Show SEND button
+const sendBtn = document.getElementById("send-overlay-btn");
+sendBtn.classList.add("show");
+
+// Gmail auto-fill
+sendBtn.onclick = () => {
+    const email = "anissankarv@gmail.com";
+    const subject = encodeURIComponent("I Said YES! ❤️");
+    const body = encodeURIComponent(
+        "Hey ❤️\n\nI opened your Valentine envelope and I said YES! 🥰💌\n\n— Your Valentine 💕"
+    );
+
+    const mailtoUrl =
+        `mailto:${email}?subject=${subject}&body=${body}`;
+
+    const gmailWebUrl =
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        // 📱 Mobile → open mail app
+        window.location.href = mailtoUrl;
+    } else {
+        // 💻 Desktop → open Gmail web
+        const win = window.open(gmailWebUrl, "_blank");
+
+        // Fallback if popup blocked
+        if (!win) {
+            window.location.href = mailtoUrl;
+        }
+    }
+};
+
+}
+
+function burstHearts(count) {
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+            const h = document.createElement('div');
+            h.className = 'celebration-heart';
+            h.innerText = "❤️";
+            
+            // Randomize starting position across the bottom
+            h.style.left = Math.random() * 100 + "vw";
+            
+            // Randomize sizes (Big hearts)
+            h.style.fontSize = (Math.random() * 60 + 40) + "px";
+            
+            // Randomize speed/delay
+            h.style.animationDuration = (Math.random() * 2 + 2) + "s";
+            
+            // Random horizontal drift
+            h.style.marginLeft = (Math.random() * 100 - 50) + "px";
+
+            document.body.appendChild(h);
+
+            // Clean up memory after animation finishes
+            setTimeout(() => h.remove(), 4000);
+        }, i * 50); // Slight stagger effect for a fountain look
+    }
+}
+
+    </script>
+    <!-- FINAL SEND BUTTON OVERLAY -->
+<button id="send-overlay-btn">SEND MESSAGE ✉️</button>
+
+</body>
+</html>
